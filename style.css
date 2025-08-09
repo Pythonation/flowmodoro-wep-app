@@ -1,12 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
 :root {
+    /* Dark Theme Colors */
     --bg-color: #1a1a2e;
     --primary-color: #16213e;
     --secondary-color: #0f3460;
     --accent-color: #e94560;
+    --accent-color-darker: #c43751;
+    --primary-color-lighter: #2a3a5e;
+
     --text-color: #dcdcdc;
     --text-muted-color: #a9a9a9;
+    --text-on-accent-color: #ffffff;
+
+    --timer-work-color: #4CAF50;
+    --timer-break-color: #2196F3;
+
+    /* General Properties */
     --border-radius: 8px;
     --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -72,7 +82,7 @@ h2 {
     margin-bottom: 1rem;
 }
 
-#task-input {
+#task-input, .edit-input {
     flex-grow: 1;
     padding: 0.75rem;
     border: 1px solid var(--primary-color);
@@ -82,22 +92,39 @@ h2 {
     font-family: 'Cairo', sans-serif;
 }
 
-#task-form button {
+.edit-input {
+    width: 70%; /* Give it a bit of space from the edge */
+}
+
+#task-form button, .timer-controls button {
     padding: 0.75rem 1.5rem;
     border: none;
     background-color: var(--accent-color);
-    color: white;
+    color: var(--text-on-accent-color);
     border-radius: var(--border-radius);
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
 }
 
-#task-form button:hover {
-    background-color: #c43751;
+#task-form button:hover, .timer-controls button:hover {
+    background-color: var(--accent-color-darker);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 #task-list {
     list-style: none;
+}
+
+@keyframes task-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #task-list li {
@@ -108,8 +135,22 @@ h2 {
     background-color: var(--primary-color);
     border-radius: var(--border-radius);
     margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.3s, opacity 0.3s;
+    cursor: default; /* Remove pointer from the whole li */
+    transition: background-color 0.3s, opacity 0.3s, transform 0.2s;
+}
+
+#task-list li.task-enter-active {
+    animation: task-fade-in 0.4s ease-out;
+}
+
+#task-list li.dragging {
+    opacity: 0.5;
+    background-color: var(--secondary-color);
+}
+
+#task-list li .task-text {
+    flex-grow: 1;
+    cursor: pointer; /* Add pointer to the text area only */
 }
 
 #task-list li.completed {
@@ -118,11 +159,12 @@ h2 {
 }
 
 #task-list li:not(.active-task):hover {
-    background-color: #2a3a5e;
+    background-color: var(--primary-color-lighter);
 }
 
 #task-list li.active-task {
     background-color: var(--accent-color);
+    color: var(--text-on-accent-color);
     font-weight: bold;
 }
 
@@ -133,10 +175,11 @@ h2 {
     cursor: pointer;
     margin-right: 0.5rem; /* For RTL, this is margin-left */
     font-size: 1rem;
-    transition: color 0.3s;
+    transition: color 0.3s, transform 0.2s;
 }
 .task-actions button:hover {
     color: var(--accent-color);
+    transform: scale(1.2);
 }
 
 
@@ -157,18 +200,38 @@ h2 {
     margin-bottom: 1.5rem;
 }
 
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .timer-box p {
     font-size: 3rem;
     font-weight: bold;
     color: var(--text-color);
+    transition: transform 0.2s;
+}
+
+.timer-box p.timer-pulsing {
+    animation: pulse 2s infinite ease-in-out;
 }
 
 #work-timer-box p {
-    color: #4CAF50;
+    color: var(--timer-work-color);
 }
 
 #break-timer-box p {
-    color: #2196F3;
+    color: var(--timer-break-color);
 }
 
 .timer-controls {
@@ -176,18 +239,7 @@ h2 {
 }
 
 .timer-controls button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    background-color: var(--accent-color);
-    color: white;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.3s;
     margin: 0 0.5rem;
-}
-
-.timer-controls button:hover {
-    background-color: #c43751;
 }
 
 /* History Section */
@@ -210,6 +262,69 @@ h2 {
 .hidden {
     display: none !important;
 }
+
+/* Light Theme Definition */
+body.light-mode {
+    --bg-color: #f4f7f9;
+    --primary-color: #ffffff;
+    --secondary-color: #eef1f4;
+    --accent-color: #d93a54; /* Slightly adjusted for light bg */
+    --accent-color-darker: #b83249;
+    --primary-color-lighter: #f0f0f0;
+
+    --text-color: #121212;
+    --text-muted-color: #555555;
+    --text-on-accent-color: #ffffff;
+
+    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Switcher */
+.theme-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.theme-switcher input[type="checkbox"] {
+    display: none;
+}
+
+.theme-switcher .toggle-label {
+    display: block;
+    width: 50px;
+    height: 26px;
+    background-color: var(--bg-color);
+    border-radius: 13px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.theme-switcher .toggle-label::after {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 22px;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+}
+
+.theme-switcher input[type="checkbox"]:checked + .toggle-label {
+    background-color: var(--accent-color);
+}
+
+.theme-switcher input[type="checkbox"]:checked + .toggle-label::after {
+    transform: translateX(24px);
+}
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

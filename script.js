@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBreakBtn = document.getElementById('start-break-btn');
     const notificationSound = document.getElementById('notification-sound');
     const historyList = document.getElementById('history-list');
+    const themeToggle = document.getElementById('theme-toggle');
 
 
     // --- State ---
@@ -20,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let workSeconds = 0;
     let breakTimerInterval = null;
     let breakSeconds = 0;
+    let draggedTaskId = null;
+    const originalTitle = document.title;
 
 
     // --- Functions ---
@@ -100,7 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks.forEach(task => {
             const li = document.createElement('li');
             li.dataset.id = task.id;
-            li.textContent = task.text;
+            li.draggable = true;
+
+            // Add a span for the text to make editing easier
+            const textSpan = document.createElement('span');
+            textSpan.classList.add('task-text');
+            textSpan.textContent = task.text;
+            li.appendChild(textSpan);
 
             if (task.completed) {
                 li.classList.add('completed');
@@ -119,6 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
             completeBtn.title = task.completed ? 'إعادة فتح المهمة' : 'إكمال المهمة';
             completeBtn.classList.add('complete-btn');
 
+            // Create edit button
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '✏️';
+            editBtn.title = 'تعديل المهمة';
+            editBtn.classList.add('edit-btn');
+
             // Create delete button
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = '🗑️';
@@ -126,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteBtn.classList.add('delete-btn');
 
             taskActions.appendChild(completeBtn);
+            // Only show edit button for non-completed and non-active tasks
+            if (!task.completed) {
+                 taskActions.appendChild(editBtn);
+            }
             taskActions.appendChild(deleteBtn);
             li.appendChild(taskActions);
 
@@ -146,6 +165,60 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks.push(newTask);
         saveTasks();
         renderTasks();
+
+        // Trigger animation
+        const newTaskElement = taskList.querySelector(`[data-id='${newTask.id}']`);
+        if (newTaskElement) {
+            newTaskElement.classList.add('task-enter-active');
+            setTimeout(() => {
+                newTaskElement.classList.remove('task-enter-active');
+            }, 400); // Match animation duration
+        }
+    }
+
+    /**
+     * Puts a task into editing mode.
+     * @param {number} id - The ID of the task to edit.
+     */
+    function editTask(id) {
+        const li = taskList.querySelector(`[data-id='${id}']`);
+        const taskTextSpan = li.querySelector('.task-text');
+        const taskActions = li.querySelector('.task-actions');
+
+        if (!taskTextSpan) return; // Already in edit mode
+
+        const currentText = taskTextSpan.textContent;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.classList.add('edit-input');
+
+        // Hide text and actions, show input
+        taskTextSpan.style.display = 'none';
+        taskActions.style.display = 'none';
+        li.prepend(input); // Prepend to keep it on the left in RTL
+        input.focus();
+
+        const saveEdit = () => {
+            const newText = input.value.trim();
+            if (newText) {
+                const task = tasks.find(t => t.id === id);
+                task.text = newText;
+                saveTasks();
+            }
+            // Always re-render to restore the original state cleanly
+            renderTasks();
+        };
+
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                renderTasks(); // Cancel edit by re-rendering
+            }
+        });
     }
 
     /**
@@ -171,6 +244,21 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks = tasks.filter(t => t.id !== id);
         saveTasks();
         renderTasks();
+    }
+
+    /**
+     * Updates the page title based on the current timer state.
+     */
+    function updateTitle() {
+        if (workTimerInterval) {
+            const task = tasks.find(t => t.id === activeTaskId);
+            const taskText = task ? task.text : '';
+            document.title = `عمل (${formatTime(workSeconds, true)}) - ${taskText}`;
+        } else if (breakTimerInterval) {
+            document.title = `راحة (${formatTime(breakSeconds)}) - ${originalTitle}`;
+        } else {
+            document.title = originalTitle;
+        }
     }
 
 
@@ -214,9 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function startWorkTimer() {
         if (workTimerInterval) clearInterval(workTimerInterval);
 
+        workTimerDisplay.classList.add('timer-pulsing');
+
         workTimerInterval = setInterval(() => {
             workSeconds++;
             workTimerDisplay.textContent = formatTime(workSeconds, true);
+            updateTitle();
         }, 1000);
 
         stopWorkBtn.classList.remove('hidden');
@@ -228,6 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopWorkTimer() {
         clearInterval(workTimerInterval);
         workTimerInterval = null;
+        workTimerDisplay.classList.remove('timer-pulsing');
+        updateTitle(); // To clear the work title
 
         // Calculate break time (5% of work time)
         breakSeconds = Math.round(workSeconds * 0.05);
@@ -249,18 +342,23 @@ document.addEventListener('DOMContentLoaded', () => {
         startBreakBtn.classList.add('hidden');
         if (breakTimerInterval) clearInterval(breakTimerInterval);
 
+        breakTimerDisplay.classList.add('timer-pulsing');
+
         breakTimerInterval = setInterval(() => {
             breakSeconds--;
             breakTimerDisplay.textContent = formatTime(breakSeconds);
+            updateTitle();
 
             if (breakSeconds <= 0) {
                 clearInterval(breakTimerInterval);
                 breakTimerInterval = null;
+                breakTimerDisplay.classList.remove('timer-pulsing');
                 notificationSound.play();
                 // Reset for next task
                 currentTaskDisplay.innerHTML = `<p>وقت الراحة انتهى! اختر مهمة جديدة.</p>`;
                 activeTaskId = null;
                 renderTasks(); // Rerender to remove active state
+                updateTitle(); // To reset the title
             }
         }, 1000);
     }
@@ -290,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startWorkTimer();
         renderTasks(); // To highlight the active task
+        updateTitle(); // Set initial title for the work session
     }
 
 
@@ -327,7 +426,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             toggleComplete(taskId);
-        } else {
+        } else if (target.classList.contains('edit-btn')) {
+            if(taskId === activeTaskId && workTimerInterval) {
+                alert('لا يمكن تعديل المهمة النشطة أثناء جلسة عمل.');
+                return;
+            }
+            editTask(taskId);
+        } else if (target.classList.contains('task-text')) {
+            // Only select task if not in edit mode
             selectTask(taskId);
         }
     });
@@ -335,6 +441,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle timer control button clicks
     stopWorkBtn.addEventListener('click', stopWorkTimer);
     startBreakBtn.addEventListener('click', startBreakTimer);
+
+    // --- Drag and Drop Event Listeners ---
+    taskList.addEventListener('dragstart', e => {
+        // We only want the text to be the drag handle
+        if (e.target.classList.contains('task-text')) {
+            const li = e.target.closest('li');
+            draggedTaskId = Number(li.dataset.id);
+            setTimeout(() => {
+                li.classList.add('dragging');
+            }, 0);
+        } else {
+            // Prevent dragging from buttons, etc.
+            e.preventDefault();
+        }
+    });
+
+    taskList.addEventListener('dragend', () => {
+        const draggingElement = taskList.querySelector('.dragging');
+        if (draggingElement) {
+            draggingElement.classList.remove('dragging');
+        }
+    });
+
+    taskList.addEventListener('dragover', e => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(taskList, e.clientY);
+        const draggingElement = document.querySelector('.dragging');
+        if (draggingElement) {
+            if (afterElement == null) {
+                taskList.appendChild(draggingElement);
+            } else {
+                taskList.insertBefore(draggingElement, afterElement);
+            }
+        }
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    taskList.addEventListener('drop', () => {
+        if (draggedTaskId === null) return;
+
+        const newOrderedIds = [...taskList.querySelectorAll('li')].map(li => Number(li.dataset.id));
+
+        tasks.sort((a, b) => newOrderedIds.indexOf(a.id) - newOrderedIds.indexOf(b.id));
+
+        draggedTaskId = null;
+        saveTasks();
+        // Re-render to ensure all state is consistent, though the DOM order is already correct.
+        renderTasks();
+    });
 
 
     /**
@@ -355,7 +523,29 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
     }
 
+    // --- Theme Handling ---
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            document.body.classList.add('light-mode');
+            themeToggle.checked = true;
+        } else {
+            document.body.classList.remove('light-mode');
+            themeToggle.checked = false;
+        }
+    }
+
+    function handleThemeToggle() {
+        const selectedTheme = themeToggle.checked ? 'light' : 'dark';
+        localStorage.setItem('flowmodoro_theme', selectedTheme);
+        applyTheme(selectedTheme);
+    }
+
+    themeToggle.addEventListener('change', handleThemeToggle);
+
     // --- Initial Load ---
     loadInitialData();
 
+    // Load saved theme
+    const savedTheme = localStorage.getItem('flowmodoro_theme') || 'dark';
+    applyTheme(savedTheme);
 });
