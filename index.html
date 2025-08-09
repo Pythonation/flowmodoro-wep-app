@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowmodoro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Flowmodoro 🌀</h1>
+            <p>اعمل بتركيز، واسترح بذكاء.</p>
+        </header>
+
+        <main>
+            <div class="task-manager">
+                <h2>قائمة المهام</h2>
+                <form id="task-form">
+                    <input type="text" id="task-input" placeholder="أضف مهمة جديدة..." autocomplete="off" required>
+                    <button type="submit">أضف</button>
+                </form>
+                <ul id="task-list">
+                    <!-- المهام ستظهر هنا -->
+                </ul>
+            </div>
+
+            <div class="timer-section">
+                <h2>جلسة التركيز الحالية</h2>
+                <div id="current-task-display">
+                    <p>اختر مهمة للبدء</p>
+                </div>
+                <div class="timers">
+                    <div class="timer-box" id="work-timer-box">
+                        <h3>وقت العمل</h3>
+                        <p id="work-timer">00:00:00</p>
+                    </div>
+                    <div class="timer-box" id="break-timer-box">
+                        <h3>وقت الراحة</h3>
+                        <p id="break-timer">00:00</p>
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <button id="stop-work-btn" class="hidden">أوقف جلسة العمل</button>
+                    <button id="start-break-btn" class="hidden">ابدأ الراحة</button>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h2>سجل الجلسات</h2>
+                <ul id="history-list">
+                    <!-- سجل الجلسات سيظهر هنا -->
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <audio id="notification-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

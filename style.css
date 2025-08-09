@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+:root {
+    --bg-color: #1a1a2e;
+    --primary-color: #16213e;
+    --secondary-color: #0f3460;
+    --accent-color: #e94560;
+    --text-color: #dcdcdc;
+    --text-muted-color: #a9a9a9;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: var(--primary-color);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--secondary-color);
+    padding-bottom: 1rem;
+}
+
+header h1 {
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+}
+
+main > div {
+    background-color: var(--secondary-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+h2 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* Task Manager */
+#task-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#task-input {
+    flex-grow: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Cairo', sans-serif;
+}
+
+#task-form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#task-form button:hover {
+    background-color: #c43751;
+}
+
+#task-list {
+    list-style: none;
+}
+
+#task-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+#task-list li.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+#task-list li:not(.active-task):hover {
+    background-color: #2a3a5e;
+}
+
+#task-list li.active-task {
+    background-color: var(--accent-color);
+    font-weight: bold;
+}
+
+.task-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted-color);
+    cursor: pointer;
+    margin-right: 0.5rem; /* For RTL, this is margin-left */
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+.task-actions button:hover {
+    color: var(--accent-color);
+}
+
+
+/* Timer Section */
+#current-task-display {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted-color);
+    font-style: italic;
+}
+
+.timers {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.timer-box p {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+#work-timer-box p {
+    color: #4CAF50;
+}
+
+#break-timer-box p {
+    color: #2196F3;
+}
+
+.timer-controls {
+    text-align: center;
+}
+
+.timer-controls button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 0 0.5rem;
+}
+
+.timer-controls button:hover {
+    background-color: #c43751;
+}
+
+/* History Section */
+#history-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 1rem; /* For scrollbar */
+}
+
+#history-list li {
+    background-color: var(--primary-color);
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0.5rem;
+    }
+    .app-container {
+        padding: 1.5rem;
+    }
+    .timers {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .timer-box p {
+        font-size: 2.5rem;
+    }
+}
